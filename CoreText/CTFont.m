@@ -20,6 +20,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #import <CoreText/CTFont.h>
 #import <CoreText/CoreText.h>
 #import <CoreText/KTFont.h>
+#import <CoreText/CTFontDescriptor.h>
+#import <CoreFoundation/CFDictionary.h>
 
 const CFStringRef kCTFontCopyrightNameKey = CFSTR("CTFontCopyrightName");
 const CFStringRef kCTFontFamilyNameKey = CFSTR("CTFontFamilyName");
@@ -60,31 +62,42 @@ const CFStringRef kCTFontFeatureTooltipTextKey = CFSTR("CTFeatureTooltipText");
 
 CTFontRef CTFontCreateWithName(CFStringRef name, CGFloat size, const CGAffineTransform *matrix)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    return CTFontCreateWithNameAndOptions(name, size, matrix, kCTFontOptionsDefault);
 }
 
 CTFontRef CTFontCreateWithNameAndOptions(CFStringRef name, CGFloat size,
                                          const CGAffineTransform *matrix,
                                          CTFontOptions options)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    (void)options;
+    if (!name) return NULL;
+    CGFontRef graphicsFont = CGFontCreateWithFontName(name);
+    if (!graphicsFont) return NULL;
+    CTFontRef font = CTFontCreateWithGraphicsFont(graphicsFont, size,
+        (CGAffineTransform *)matrix, NULL);
+    CGFontRelease(graphicsFont);
+    return font;
 }
 
 CTFontRef CTFontCreateWithFontDescriptor(CTFontDescriptorRef descriptor, CGFloat size,
                                          const CGAffineTransform *matrix)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    return CTFontCreateWithFontDescriptorAndOptions(descriptor, size, matrix,
+        kCTFontOptionsDefault);
 }
 
 CTFontRef CTFontCreateWithFontDescriptorAndOptions(CTFontDescriptorRef descriptor, CGFloat size,
                                                    const CGAffineTransform *matrix,
                                                    CTFontOptions options)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    (void)options;
+    if (!descriptor) return NULL;
+    CFStringRef name = CTFontDescriptorCopyAttribute(descriptor, kCTFontNameAttribute);
+    if (!name) name = CTFontDescriptorCopyAttribute(descriptor, kCTFontFamilyNameAttribute);
+    if (!name) return NULL;
+    CTFontRef font = CTFontCreateWithName(name, size, matrix);
+    CFRelease(name);
+    return font;
 }
 
 CTFontRef CTFontCreateUIFontForLanguage(CTFontUIFontType uiFontType,
@@ -99,8 +112,18 @@ CTFontRef CTFontCreateCopyWithAttributes(CTFontRef font, CGFloat size,
                                          const CGAffineTransform *matrix,
                                          CTFontDescriptorRef attributes)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    if (!font) return NULL;
+    CTFontDescriptorRef descriptor = CTFontCopyFontDescriptor(font);
+    if (!descriptor) return NULL;
+    CTFontDescriptorRef merged = attributes ?
+        CTFontDescriptorCreateCopyWithAttributes(descriptor, (CFDictionaryRef)attributes) :
+        CTFontDescriptorCreateCopyWithAttributes(descriptor, NULL);
+    CFRelease(descriptor);
+    if (!merged) return NULL;
+    CTFontRef copy = CTFontCreateWithFontDescriptor(merged,
+        size == 0 ? CTFontGetSize(font) : size, matrix);
+    CFRelease(merged);
+    return copy;
 }
 
 CTFontRef CTFontCreateCopyWithSymbolicTraits(CTFontRef font, CGFloat size,
@@ -115,8 +138,8 @@ CTFontRef CTFontCreateCopyWithSymbolicTraits(CTFontRef font, CGFloat size,
 CTFontRef CTFontCreateCopyWithFamily(CTFontRef font, CGFloat size,
                                      const CGAffineTransform *matrix, CFStringRef family)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    if (!family) return NULL;
+    return CTFontCreateWithName(family, size == 0 && font ? CTFontGetSize(font) : size, matrix);
 }
 
 CTFontRef CTFontCreateForString(CTFontRef currentFont, CFStringRef string, CFRange range)
@@ -134,14 +157,28 @@ CTFontRef CTFontCreateForStringWithLanguage(CTFontRef currentFont, CFStringRef s
 
 CTFontDescriptorRef CTFontCopyFontDescriptor(CTFontRef font)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    if (!font) return NULL;
+    CFStringRef name = CTFontCopyFullName(font);
+    if (!name) return NULL;
+    const void *keys[] = { kCTFontNameAttribute };
+    const void *values[] = { name };
+    CFDictionaryRef attributes = CFDictionaryCreate(kCFAllocatorDefault, keys, values, 1,
+        &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    CFRelease(name);
+    if (!attributes) return NULL;
+    CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithAttributes(attributes);
+    CFRelease(attributes);
+    return descriptor;
 }
 
 CFTypeRef CTFontCopyAttribute(CTFontRef font, CFStringRef attribute)
 {
-    printf("STUB %s\n", __PRETTY_FUNCTION__);
-    return nil;
+    if (!font || !attribute) return NULL;
+    CTFontDescriptorRef descriptor = CTFontCopyFontDescriptor(font);
+    if (!descriptor) return NULL;
+    CFTypeRef value = CTFontDescriptorCopyAttribute(descriptor, attribute);
+    CFRelease(descriptor);
+    return value;
 }
 
 CGFloat CTFontGetSize(CTFontRef self) {
