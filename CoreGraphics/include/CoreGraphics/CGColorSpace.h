@@ -18,6 +18,7 @@ COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceGenericGray;
 COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceGenericRGB;
 COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceGenericCMYK;
 COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceDisplayP3;
+COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceExtendedLinearDisplayP3;
 COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceGenericRGBLinear;
 COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceAdobeRGB1998;
 COREGRAPHICS_EXPORT const CFStringRef kCGColorSpaceSRGB;

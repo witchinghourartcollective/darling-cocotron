@@ -107,6 +107,21 @@ NSImageName const NSImageNameGoForwardTemplate = @"NSGoForwardTemplate";
 NSImageHintKey const NSImageHintInterpolation = @"NSImageHintInterpolation";
 NSImageHintKey const NSImageHintCTM = @"NSImageHintCTM";
 
+// macOS 12 added SF Symbol images and their configuration object. Cocotron
+// does not ship Apple's SF Symbols catalog, but QtGui links these selectors
+// unconditionally. Keep the configuration API loadable and let unsupported
+// system-symbol lookups cleanly return nil.
+@interface NSImageSymbolConfiguration : NSObject
++ (instancetype)configurationWithPointSize:(CGFloat)pointSize weight:(NSInteger)weight scale:(NSInteger)scale;
+@end
+
+@implementation NSImageSymbolConfiguration
++ (instancetype)configurationWithPointSize:(CGFloat)pointSize weight:(NSInteger)weight scale:(NSInteger)scale
+{
+    return [[[self alloc] init] autorelease];
+}
+@end
+
 NSImageName const NSImageNameTouchBarDeleteTemplate =
         @"NSTouchBarDeleteTemplate";
 NSImageName const NSImageNameTouchBarPauseTemplate = @"NSTouchBarPauseTemplate";
@@ -281,6 +296,16 @@ NSImageName const NSImageNameTouchBarVolumeUpTemplate =
 @end
 
 @implementation NSImage
+
++ (NSImage *)imageWithSystemSymbolName:(NSString *)name accessibilityDescription:(NSString *)description
+{
+    return nil;
+}
+
+- (NSImage *)imageWithSymbolConfiguration:(NSImageSymbolConfiguration *)configuration
+{
+    return self;
+}
 
 + (NSArray *) imageFileTypes {
     return [self imageUnfilteredFileTypes];
